@@ -22,19 +22,23 @@ addEventListener('fetch', event => {
 async function handleRequest(request) {
 
 	const uri = request.url.split('/').pop();
-	let content;
-	let headers = {};
+	let body; // response body
+	let headers = {}; // response headers
 
 	switch(uri){
 		case 'links': // respond with json at /links uri
-			content = JSON.stringify(links);
+			body = JSON.stringify(links);
     		headers = { 'content-type': 'application/json' };
 		break;
 
-		default:
-			content = uri; // respond with uri
+		default: // render static html
+			const url = 'https://static-links-page.signalnerve.workers.dev/';
+			body = await fetch(url) // html
+				.then(response => response.text())
+				.then(HTML => HTML);
+
     		headers = { 'content-type': 'text/html' };
 	}
 
-  	return new Response(content, { headers: headers });
+  	return new Response(body, { headers: headers });
 }
