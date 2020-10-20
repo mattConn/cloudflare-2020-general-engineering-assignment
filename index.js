@@ -1,17 +1,18 @@
-// make link object
-const makeLink = (name,url) => {
-    return {
-        name: name,
-        url: url
-    };
-};
+// link object
+class Link {
+	constructor(name,url)
+	{
+		this.name = name;
+		this.url = url;
+	}
+}
 
 const links = [
-    makeLink('Go by Example','https://gobyexample.com/'),
-    makeLink('Google', 'https://www.google.com/'),
-    makeLink('GitHub', 'https://github.com/'),
-    makeLink('Foobiebletch', 'http://foobiebletch.net/'),
-    makeLink('Cloudflare Workers', 'https://workers.cloudflare.com/'),
+    new Link('Go by Example','https://gobyexample.com/'),
+    new Link('Google', 'https://www.google.com/'),
+    new Link('GitHub', 'https://github.com/'),
+    new Link('Foobiebletch', 'http://foobiebletch.net/'),
+    new Link('Cloudflare Workers', 'https://workers.cloudflare.com/'),
 ];
 
 
