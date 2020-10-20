@@ -36,24 +36,17 @@ addEventListener('fetch', event => {
 
 async function handleRequest(request) {
 
-	const uri = request.url.split('/').pop();
-	let body; // response body
-	let headers = {}; // response headers
+	// handle favicon request, write header not body
+	if(request.url.endsWith('favicon.ico'))
+		return new Response(null, {headers: {'content-type' : 'image/png'}});
 
-	switch(uri){
-		case 'links': // respond with json at /links uri
-			body = JSON.stringify(links);
-    		headers = { 'content-type': 'application/json' };
-		break;
+	// handle links request, write header and json
+	if(request.url.endsWith('links'))
+		return new Response(JSON.stringify(links), {headers: {'content-type' : 'application/json'}});
 
-		default: // render static html
-
-			const url = 'https://static-links-page.signalnerve.workers.dev/';
-
-			const response = await fetch(url);
-			const targetElement = 'div#links';
-			return new HTMLRewriter().on(targetElement, new LinksTransformer(links)).transform(response);
-	}
-
-  	return new Response(body, { headers: headers });
+	// handle all other requests by writing and rewriting static html
+	const url = 'https://static-links-page.signalnerve.workers.dev/';
+	const response = await fetch(url);
+	const targetElement = 'div#links';
+	return new HTMLRewriter().on(targetElement, new LinksTransformer(links)).transform(response);
 }
