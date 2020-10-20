@@ -21,6 +21,28 @@ class LinksTransformer {
   }
 }
 
+// for modifyng inline styles via HTMLRewriter
+class StyleSetter {
+	constructor(styles) {
+		// style object {rule: value}
+		this.styles = styles;
+	}
+
+	async element(element) {
+		// no styles specified, clear styles
+		if(!this.styles)
+		{
+			element.setAttribute('style','');
+			return;
+		}
+
+		// transform style object to valid style formatted string
+		// no quotes, no curly braces, commas to semicolons
+		element.setAttribute('style',
+			JSON.stringify(this.styles).replace(/{|}|\"/g,'').replace(/,/g,';'));
+	}
+}
+
 const links = [
     new Link('Go by Example','https://gobyexample.com/'),
     new Link('Google', 'https://www.google.com/'),
@@ -47,6 +69,8 @@ async function handleRequest(request) {
 	// handle all other requests by writing and rewriting static html
 	const url = 'https://static-links-page.signalnerve.workers.dev/';
 	const response = await fetch(url);
-	const targetElement = 'div#links';
-	return new HTMLRewriter().on(targetElement, new LinksTransformer(links)).transform(response);
+
+	return new HTMLRewriter()
+		.on('div#links', new LinksTransformer(links))
+		.on('div#profile', new StyleSetter(null)).transform(response);
 }
