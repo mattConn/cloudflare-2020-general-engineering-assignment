@@ -113,6 +113,8 @@ const socialLinks = [
 	new Link(svgIcons.twitter, 'https://twitter.com/mattconndev'),
 ];
 
+const myName = 'Matthew Connelly';
+
 
 addEventListener('fetch', event => {
   event.respondWith(handleRequest(event.request))
@@ -134,10 +136,19 @@ async function handleRequest(request) {
 
 	return new HTMLRewriter()
 		.on('div#links', new LinksTransformer(links)) // write link anchors to div#links
+
+		// modify profile image and text
 		.on('div#profile', new StyleSetter(null)) // unhide div#profile by clearing styles
 		.on('img#avatar', new AttributeSetter({src: 'http://foobiebletch.net/images/profile.png'})) // set src of profile img
 		.on('h1#name', new ContentSetter('Matthew Connelly')) // set content of element to my name
+
+		// modify social links div
 		.on('div#social', new StyleSetter(null)) // unhide div#social
 		.on('div#social', new LinksTransformer(socialLinks)) // add social links to div#social
+		
+		.on('title', new ContentSetter(myName)) // change document title
+
+		.on('body', new AttributeSetter({class: 'bg-blue-500'})) // set body bg via tailwaind css class
+
 		.transform(response);
 }
