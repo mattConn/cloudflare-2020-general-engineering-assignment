@@ -1,1 +1,1 @@
-https://mydeployedworker.mydomain.com <- replace everything in this file with a single link to your deployed worker.
+http://cloudflare2020-assignment.foobiebletch.net/
