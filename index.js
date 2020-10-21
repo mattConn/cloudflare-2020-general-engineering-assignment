@@ -43,6 +43,47 @@ class StyleSetter {
 	}
 }
 
+// set inner content of element
+class ContentSetter {
+	constructor(content) {
+		// attr object {attr: value}
+		this.content = content;
+	}
+
+	async element(element) {
+		// clear content if none specified
+		if(!this.content)
+		{
+			element.setInnerContent('');
+			return;
+		}
+
+		element.setInnerContent(this.content, {html: true});
+	}
+}
+
+// set attribute of element
+class AttributeSetter {
+	constructor(attributes) {
+		// attribute object {attribute: value}
+		this.attributes = attributes;
+	}
+
+	async element(element) {
+		// clear attributes if none specified
+		if(!this.attributes)
+		{
+			for(const pair of element.attributes)
+				element.setAttribute(pair[0],'');
+			return;
+		}
+
+		// set attribute values
+		for(const attribute in this.attributes)
+			element.setAttribute(attribute, this.attributes[attribute]);
+	}
+}
+
 const links = [
     new Link('Go by Example','https://gobyexample.com/'),
     new Link('Google', 'https://www.google.com/'),
@@ -72,5 +113,6 @@ async function handleRequest(request) {
 
 	return new HTMLRewriter()
 		.on('div#links', new LinksTransformer(links))
-		.on('div#profile', new StyleSetter(null)).transform(response);
+		.on('div#profile', new StyleSetter(null))
+		.transform(response);
 }
