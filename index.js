@@ -112,9 +112,9 @@ async function handleRequest(request) {
 	const response = await fetch(url);
 
 	return new HTMLRewriter()
-		.on('div#links', new LinksTransformer(links)) // write links to html
-		.on('div#profile', new StyleSetter(null)) // remove styling from element
-		.on('img#avatar', new AttributeSetter({src: 'http://foobiebletch.net/images/profile.png'})) // set src of img
-		.on('h1#name', new ContentSetter('Matthew Connelly')) // set content of element 
+		.on('div#links', new LinksTransformer(links)) // write link anchors to div#links
+		.on('div#profile', new StyleSetter(null)) // unhide div#profile by clearing styles
+		.on('img#avatar', new AttributeSetter({src: 'http://foobiebletch.net/images/profile.png'})) // set src of profile img
+		.on('h1#name', new ContentSetter('Matthew Connelly')) // set content of element to my name
 		.transform(response);
 }
