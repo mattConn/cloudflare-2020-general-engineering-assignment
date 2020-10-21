@@ -1,17 +1,95 @@
-// make link object
-const makeLink = (name,url) => {
-    return {
-        name: name,
-        url: url
-    };
-};
+// link object
+class Link {
+	constructor(name,url)
+	{
+		this.name = name;
+		this.url = url;
+	}
+}
+
+// for writing links to html
+class LinksTransformer {
+  constructor(links) {
+    this.links = links;
+  }
+  
+  async element(element) {
+	element.setInnerContent(
+		this.links.map(
+			link => `<a href="${link.url}">${link.name}</a>`
+		).join(''), {html: true});
+  }
+}
+
+// for modifyng inline styles via HTMLRewriter
+class StyleSetter {
+	constructor(styles) {
+		// style object {rule: value}
+		this.styles = styles;
+	}
+
+	async element(element) {
+		// no styles specified, clear styles
+		if(!this.styles)
+		{
+			element.setAttribute('style','');
+			return;
+		}
+
+		// transform style object to valid style formatted string
+		// no quotes, no curly braces, commas to semicolons
+		element.setAttribute('style',
+			JSON.stringify(this.styles).replace(/{|}|\"/g,'').replace(/,/g,';'));
+	}
+}
+
+// set inner content of element
+class ContentSetter {
+	constructor(content) {
+		// attr object {attr: value}
+		this.content = content;
+	}
+
+	async element(element) {
+		// clear content if none specified
+		if(!this.content)
+		{
+			element.setInnerContent('');
+			return;
+		}
+
+		element.setInnerContent(this.content, {html: true});
+	}
+}
+
+// set attribute of element
+class AttributeSetter {
+	constructor(attributes) {
+		// attribute object {attribute: value}
+		this.attributes = attributes;
+	}
+
+	async element(element) {
+		// clear attributes if none specified
+		if(!this.attributes)
+		{
+			for(const pair of element.attributes)
+				element.setAttribute(pair[0],'');
+			return;
+		}
+
+		// set attribute values
+		for(const attribute in this.attributes)
+			element.setAttribute(attribute, this.attributes[attribute]);
+	}
+}
 
 const links = [
-    makeLink('Go by Example','https://gobyexample.com/'),
-    makeLink('Google', 'https://www.google.com/'),
-    makeLink('GitHub', 'https://github.com/'),
-    makeLink('Foobiebletch', 'http://foobiebletch.net/'),
-    makeLink('Cloudflare Workers', 'https://workers.cloudflare.com/'),
+    new Link('Go by Example','https://gobyexample.com/'),
+    new Link('Google', 'https://www.google.com/'),
+    new Link('GitHub', 'https://github.com/'),
+    new Link('Foobiebletch', 'http://foobiebletch.net/'),
+    new Link('Cloudflare Workers', 'https://workers.cloudflare.com/'),
 ];
 
 
@@ -21,20 +99,22 @@ addEventListener('fetch', event => {
 
 async function handleRequest(request) {
 
-	const uri = request.url.split('/').pop();
-	let content;
-	let headers = {};
+	// handle favicon request, write header not body
+	if(request.url.endsWith('favicon.ico'))
+		return new Response(null, {headers: {'content-type' : 'image/png'}});
 
-	switch(uri){
-		case 'links': // respond with json at /links uri
-			content = JSON.stringify(links);
-    		headers = { 'content-type': 'application/json' };
-		break;
+	// handle links request, write header and json
+	if(request.url.endsWith('links'))
+		return new Response(JSON.stringify(links), {headers: {'content-type' : 'application/json'}});
 
-		default:
-			content = uri; // respond with uri
-    		headers = { 'content-type': 'text/html' };
-	}
+	// handle all other requests by writing and rewriting static html
+	const url = 'https://static-links-page.signalnerve.workers.dev/';
+	const response = await fetch(url);
 
-  	return new Response(content, { headers: headers });
+	return new HTMLRewriter()
+		.on('div#links', new LinksTransformer(links)) // write links to html
+		.on('div#profile', new StyleSetter(null)) // remove styling from element
+		.on('img#avatar', new AttributeSetter({src: 'http://foobiebletch.net/images/profile.png'})) // set src of img
+		.on('h1#name', new ContentSetter('Matthew Connelly')) // set content of element 
+		.transform(response);
 }
